@@ -16,7 +16,6 @@
 
 package org.jetbrains.kotlin.codegen
 
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.search.GlobalSearchScope
@@ -118,8 +117,8 @@ object GenerationUtils {
         packagePartProvider: (GlobalSearchScope) -> PackagePartProvider,
         trace: BindingTrace
     ): GenerationState {
-        Extensions.getArea(project)
-            .getExtensionPoint(PsiElementFinder.EP_NAME)
+        project.extensionArea
+            .getExtensionPoint<PsiElementFinder>(PsiElementFinder.EP.name)
             .unregisterExtension(JavaElementFinder::class.java)
 
         val scope = GlobalSearchScope.filesScope(project, files.map { it.virtualFile })

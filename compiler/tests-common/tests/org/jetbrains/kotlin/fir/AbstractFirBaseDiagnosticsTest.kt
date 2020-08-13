@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.fir
 
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFinder
@@ -62,8 +61,8 @@ abstract class AbstractFirBaseDiagnosticsTest : BaseDiagnosticsTest() {
         get() = false
 
     override fun setupEnvironment(environment: KotlinCoreEnvironment) {
-        Extensions.getArea(environment.project)
-            .getExtensionPoint(PsiElementFinder.EP_NAME)
+        environment.project.extensionArea
+            .getExtensionPoint<PsiElementFinder>(PsiElementFinder.EP.name)
             .unregisterExtension(JavaElementFinder::class.java)
     }
 

@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.fir
 
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.search.GlobalSearchScope
@@ -167,8 +166,8 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
         val configuration = createDefaultConfiguration(moduleData)
         val environment = KotlinCoreEnvironment.createForTests(disposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
 
-        Extensions.getArea(environment.project)
-            .getExtensionPoint(PsiElementFinder.EP_NAME)
+        environment.project.extensionArea
+            .getExtensionPoint<PsiElementFinder>(PsiElementFinder.EP.name)
             .unregisterExtension(JavaElementFinder::class.java)
 
         runAnalysis(moduleData, environment)

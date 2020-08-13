@@ -120,7 +120,7 @@ class KotlinCoreEnvironment private constructor(
         private var extensionRegistered = false
 
         override fun preregisterServices() {
-            registerProjectExtensionPoints(Extensions.getArea(project))
+            registerProjectExtensionPoints(project.extensionArea)
         }
 
         fun registerExtensionsFromPlugins(configuration: CompilerConfiguration) {
@@ -598,9 +598,9 @@ class KotlinCoreEnvironment private constructor(
         @JvmStatic
         fun registerProjectExtensionPoints(area: ExtensionsArea) {
             CoreApplicationEnvironment.registerExtensionPoint(
-                area, PsiTreeChangePreprocessor.EP_NAME, PsiTreeChangePreprocessor::class.java
+                area, PsiTreeChangePreprocessor.EP.name, PsiTreeChangePreprocessor::class.java
             )
-            CoreApplicationEnvironment.registerExtensionPoint(area, PsiElementFinder.EP_NAME, PsiElementFinder::class.java)
+            CoreApplicationEnvironment.registerExtensionPoint(area, PsiElementFinder.EP.name, PsiElementFinder::class.java)
 
             IdeaExtensionPoints.registerVersionSpecificProjectExtensionPoints(area)
         }
@@ -644,12 +644,9 @@ class KotlinCoreEnvironment private constructor(
                 registerService(KotlinAsJavaSupport::class.java, kotlinAsJavaSupport)
                 registerService(CodeAnalyzerInitializer::class.java, traceHolder)
 
-                val area = Extensions.getArea(this)
-
-                area.getExtensionPoint(PsiElementFinder.EP_NAME).registerExtension(JavaElementFinder(this, kotlinAsJavaSupport))
-                area.getExtensionPoint(PsiElementFinder.EP_NAME).registerExtension(
-                    PsiElementFinderImpl(this, ServiceManager.getService(this, JavaFileManager::class.java))
-                )
+                val psiElementFinder = (extensionArea as ExtensionsArea).getExtensionPoint<PsiElementFinder>(PsiElementFinder.EP.name)
+                psiElementFinder.registerExtension(JavaElementFinder(this, kotlinAsJavaSupport), this)
+                psiElementFinder.registerExtension(PsiElementFinderImpl(this), this)
             }
         }
 

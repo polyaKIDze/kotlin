@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.fir.java
 
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.search.GlobalSearchScope
@@ -13,9 +12,9 @@ import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.analysis.registerCheckersComponent
 import org.jetbrains.kotlin.fir.java.deserialization.KotlinDeserializedJvmSymbolsProvider
+import org.jetbrains.kotlin.fir.resolve.calls.jvm.registerJvmCallConflictResolverFactory
 import org.jetbrains.kotlin.fir.resolve.providers.FirProvider
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
-import org.jetbrains.kotlin.fir.resolve.calls.jvm.registerJvmCallConflictResolverFactory
 import org.jetbrains.kotlin.fir.resolve.providers.impl.*
 import org.jetbrains.kotlin.fir.resolve.scopes.wrapScopeWithJvmMapped
 import org.jetbrains.kotlin.fir.scopes.KotlinScopeProvider
@@ -56,9 +55,9 @@ class FirJavaModuleBasedSession private constructor(
                     ) as FirSymbolProvider
                 )
 
-                Extensions.getArea(sessionProvider.project)
-                    .getExtensionPoint(PsiElementFinder.EP_NAME)
-                    .registerExtension(FirJavaElementFinder(this, sessionProvider.project))
+                sessionProvider.project.extensionArea
+                    .getExtensionPoint<PsiElementFinder>(PsiElementFinder.EP.name)
+                    .registerExtension(FirJavaElementFinder(this, sessionProvider.project), sessionProvider.project)
             }
         }
     }

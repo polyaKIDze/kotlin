@@ -17,7 +17,6 @@
 package org.jetbrains.kotlin.asJava.finder
 
 import com.google.common.collect.Sets
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Condition
 import com.intellij.psi.*
@@ -174,7 +173,7 @@ class JavaElementFinder(
     companion object {
 
         fun getInstance(project: Project): JavaElementFinder {
-            val extensions = Extensions.getArea(project).getExtensionPoint(PsiElementFinder.EP_NAME).extensions
+            val extensions = project.extensionArea.getExtensionPoint<PsiElementFinder>(EP.name).extensions
             for (extension in extensions) {
                 if (extension is JavaElementFinder) {
                     return extension

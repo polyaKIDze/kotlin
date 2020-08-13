@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.fir.java
 
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.impl.compiled.ClsClassImpl
 import com.intellij.psi.search.GlobalSearchScope
@@ -21,7 +20,9 @@ abstract class AbstractFirOldFrontendLightClassesTest : AbstractFirOldFrontendDi
         super.checkResultingFirFiles(firFiles, testDataFile)
 
         val ourFinders =
-            Extensions.getArea(project).getExtensionPoint(PsiElementFinder.EP_NAME).extensions.filterIsInstance<FirJavaElementFinder>()
+            project.extensionArea
+                .getExtensionPoint<PsiElementFinder>(PsiElementFinder.EP.name)
+                .extensions.filterIsInstance<FirJavaElementFinder>()
 
         assertNotEmpty(ourFinders)
 

@@ -16,7 +16,6 @@
 
 package org.jetbrains.kotlin.cli.jvm.compiler
 
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.*
 import com.intellij.psi.PsiElementFinder
@@ -317,8 +316,8 @@ object KotlinToJVMBytecodeCompiler {
         val project = environment.project
         val performanceManager = environment.configuration.get(CLIConfigurationKeys.PERF_MANAGER)
 
-        Extensions.getArea(project)
-            .getExtensionPoint(PsiElementFinder.EP_NAME)
+        project.extensionArea
+            .getExtensionPoint<PsiElementFinder>(PsiElementFinder.EP.name)
             .unregisterExtension(JavaElementFinder::class.java)
 
         val projectConfiguration = environment.configuration

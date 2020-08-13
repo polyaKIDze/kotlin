@@ -5,7 +5,6 @@
 package org.jetbrains.kotlin.benchmarks
 
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.CharsetToolkit
 import com.intellij.psi.PsiElementFinder
@@ -104,8 +103,8 @@ abstract class AbstractSimpleFileBenchmark {
         )
 
         if (isIR) {
-            Extensions.getArea(env.project)
-                .getExtensionPoint(PsiElementFinder.EP_NAME)
+            env.project.extensionArea
+                .getExtensionPoint<PsiElementFinder>(PsiElementFinder.EP.name)
                 .unregisterExtension(JavaElementFinder::class.java)
         }
 
@@ -163,8 +162,8 @@ abstract class AbstractSimpleFileBenchmark {
         totalTransformer.process(listOf(firFile))
 
         bh.consume(firFile.hashCode())
-        Extensions.getArea(env.project)
-            .getExtensionPoint(PsiElementFinder.EP_NAME)
+        env.project.extensionArea
+            .getExtensionPoint<PsiElementFinder>(PsiElementFinder.EP.name)
             .unregisterExtension(FirJavaElementFinder::class.java)
     }
 

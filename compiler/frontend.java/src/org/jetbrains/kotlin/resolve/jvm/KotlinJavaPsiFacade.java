@@ -17,7 +17,6 @@
 package org.jetbrains.kotlin.resolve.jvm;
 
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -209,7 +208,7 @@ public class KotlinJavaPsiFacade {
         );
 
         List<PsiElementFinder> nonKotlinFinders = ArraysKt.filter(
-                getProject().getExtensions(PsiElementFinder.EP_NAME),
+                getProject().getExtensionArea().<PsiElementFinder>getExtensionPoint(PsiElementFinder.EP.getName()).getExtensions(),
                 finder -> (finder instanceof KotlinSafeClassFinder) ||
                           !(finder instanceof NonClasspathClassFinder ||
                             finder instanceof KotlinFinderMarker ||
