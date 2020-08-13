@@ -105,14 +105,21 @@ internal class KtFirScopeProvider(
         return convertToKtScope(firTypeScope)
     }
 
-    override fun getScopeContextForPosition(originalFile: KtFile, positionInFakeFile: KtElement): KtScopeContext = withValidityAssertion {
+    override fun getScopeContextForPosition(
+        originalFile: KtFile,
+        originalPosition: PsiElement?,
+        positionInFakeFile: KtElement
+    ): KtScopeContext = withValidityAssertion {
         val originalFirFile = originalFile.getOrBuildFirOfType<FirFile>(firResolveState)
         val fakeEnclosingFunction = positionInFakeFile.getNonStrictParentOfType<KtNamedFunction>()
             ?: error("Cannot find enclosing function for ${positionInFakeFile.getElementTextInContext()}")
+        val originalEnclosingFunction = originalPosition?.getNonStrictParentOfType<KtNamedFunction>()
+            ?: error("Cannot find original enclosing function for $originalPosition")
 
         val completionContext = LowLevelFirApiFacade.buildCompletionContextForFunction(
             originalFirFile,
             fakeEnclosingFunction,
+            originalEnclosingFunction,
             state = firResolveState
         )
 
