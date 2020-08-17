@@ -237,6 +237,7 @@ class KotlinGradleProjectResolverExtension : AbstractProjectResolverExtension() 
         ideModule.platformPluginId = gradleModel.platformPluginId
 
         ideProject.argumentCachesContainer.mergeArgumentsContainer(gradleModel.argumentCachesContainer)
+        gradleModel.argumentCachesContainer.clear()
 
         if (gradleModel.hasKotlinPlugin) {
             KotlinFUSLogger.log(FUSEventGroups.GradleTarget, gradleModel.kotlinTarget ?: "unknown")

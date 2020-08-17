@@ -283,6 +283,7 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtensionComp
             mainModuleNode.isMppDataInitialized = true
             val projectNodeArgumentCachesContainer = projectDataNode.argumentCachesContainer
             projectNodeArgumentCachesContainer.mergeArgumentsContainer(mppModel.argumentCachesContainer)
+            mppModel.argumentCachesContainer.clear()
 
             val jdkName = gradleModule.jdkNameIfAny
 

@@ -24,6 +24,7 @@ interface IArgumentsCache<K, T : ArgumentCacheId<K>> : Serializable {
     fun cacheArgument(compilerArgument: String): K
     fun selectArgument(compilerArgumentId: K): String
     fun selectAllArguments(): List<String>
+    fun clear()
 
     fun cacheAllArguments(compilerArguments: Iterable<String>): List<K> =
         compilerArguments.map { cacheArgument(it) }
@@ -43,6 +44,10 @@ class CompilerArgumentsCache : IArgumentsCache<CompilerArgumentCacheIdType, Comp
         val hash = compilerArgument.hashCode()
         compilerArgumentCache += hash to compilerArgument
         return hash
+    }
+
+    override fun clear() {
+        compilerArgumentCache.clear()
     }
 
     override fun selectArgument(compilerArgumentId: Int): String = compilerArgumentCache[compilerArgumentId]!!
@@ -69,6 +74,10 @@ class ClasspathArgumentsCache : IArgumentsCache<ClasspathArgumentCacheIdType, Cl
         compilerArgumentId.joinToString(separator = File.separator) { classpathPartsCache[it]!! }
 
     override fun selectAllArguments(): List<String> = classpathPartsCache.values.toList()
+
+    override fun clear() {
+        classpathPartsCache.clear()
+    }
 }
 
 data class ArgumentCachesContainer(
@@ -80,5 +89,10 @@ data class ArgumentCachesContainer(
     fun mergeArgumentsContainer(otherContainer: ArgumentCachesContainer) {
         compilerArgumentsCache.mergeArgumentsFromCache(otherContainer.compilerArgumentsCache)
         classpathArgumentsCache.mergeArgumentsFromCache(otherContainer.classpathArgumentsCache)
+    }
+
+    fun clear() {
+        compilerArgumentsCache.clear()
+        classpathArgumentsCache.clear()
     }
 }
