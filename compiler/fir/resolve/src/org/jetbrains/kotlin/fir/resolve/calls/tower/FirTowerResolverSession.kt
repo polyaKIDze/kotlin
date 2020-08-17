@@ -27,7 +27,6 @@ class FirTowerResolverSession internal constructor(
         val depth: Int
     )
 
-
     private val invokeResolver = FirTowerInvokeResolver(this)
 
     private val localScopes: List<FirScope> by lazy(LazyThreadSafetyMode.NONE) {
