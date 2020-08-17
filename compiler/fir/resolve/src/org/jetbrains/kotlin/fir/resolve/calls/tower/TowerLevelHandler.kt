@@ -27,7 +27,6 @@ internal class CandidateFactoriesAndCollectors(
     val stubReceiverCandidateFactory: CandidateFactory?,
 )
 
-typealias EnqueueTasksForInvokeReceiverCandidates = () -> Unit
 
 internal class TowerLevelHandler(
     val collector: CandidateCollector,
