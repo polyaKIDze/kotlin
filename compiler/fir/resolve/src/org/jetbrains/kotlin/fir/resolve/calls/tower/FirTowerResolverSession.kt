@@ -88,7 +88,7 @@ class FirTowerResolverSession internal constructor(
 
     private fun enqueueResolveForNoReceiver(info: CallInfo, mainTask: FirTowerResolveTask) {
         manager.enqueueResolverTask { mainTask.runResolverForNoReceiver(info) }
-        invokeResolver.enhanceResolveForNoReceiver(info)
+        invokeResolver.enqueueResolveTasksForNoReceiver(info)
     }
 
     fun runResolution(info: CallInfo) {
@@ -102,7 +102,7 @@ class FirTowerResolverSession internal constructor(
         when (val receiver = info.explicitReceiver) {
             is FirResolvedQualifier -> {
                 manager.enqueueResolverTask { mainTask.runResolverForQualifierReceiver(info, receiver) }
-                invokeResolver.enhanceQualifierResolve(info, receiver)
+                invokeResolver.enqueueResolveTasksForQualifier(info, receiver)
             }
             null -> enqueueResolveForNoReceiver(info, mainTask)
             else -> run {
@@ -114,7 +114,7 @@ class FirTowerResolverSession internal constructor(
                 }
 
                 manager.enqueueResolverTask { mainTask.runResolverForExpressionReceiver(info, receiver) }
-                invokeResolver.enhanceResolveForExpressionReceiver(info, receiver)
+                invokeResolver.enqueueResolveTasksForExpressionReceiver(info, receiver)
             }
         }
     }
