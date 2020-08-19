@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.idea.frontend.api.fir
 
-import org.jetbrains.kotlin.builtins.KotlinBuiltInsNames
+import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
@@ -196,8 +196,8 @@ private constructor(
     companion object {
         private val kotlinFunctionInvokeCallableIds = (0..23).flatMapTo(hashSetOf()) { arity ->
             listOf(
-                CallableId(KotlinBuiltInsNames.getFunctionClassId(arity), Name.identifier("invoke")),
-                CallableId(KotlinBuiltInsNames.getSuspendFunctionClassId(arity), Name.identifier("invoke"))
+                CallableId(StandardNames.getFunctionClassId(arity), Name.identifier("invoke")),
+                CallableId(StandardNames.getSuspendFunctionClassId(arity), Name.identifier("invoke"))
             )
         }
 

@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.serialization.builtins
 
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.util.containers.ContainerUtil
-import org.jetbrains.kotlin.builtins.KotlinBuiltInsNames
+import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.resolve.lazy.createResolveSessionForFiles
@@ -28,9 +28,9 @@ object BuiltinsTestUtils {
 
     @JvmField
     val BUILTIN_PACKAGE_NAMES = listOf(
-        KotlinBuiltInsNames.BUILT_INS_PACKAGE_FQ_NAME,
-        KotlinBuiltInsNames.COLLECTIONS_PACKAGE_FQ_NAME,
-        KotlinBuiltInsNames.RANGES_PACKAGE_FQ_NAME
+        StandardNames.BUILT_INS_PACKAGE_FQ_NAME,
+        StandardNames.COLLECTIONS_PACKAGE_FQ_NAME,
+        StandardNames.RANGES_PACKAGE_FQ_NAME
     )
 
     private fun allFilesUnder(directory: String): List<File?> {
