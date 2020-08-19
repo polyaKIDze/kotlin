@@ -2453,6 +2453,11 @@ public class JsCodegenInlineTestGenerated extends AbstractJsCodegenInlineTest {
             runTest("compiler/testData/codegen/boxInline/optimizations/checkcast.kt");
         }
 
+        @TestMetadata("checkcastAfterInline.kt")
+        public void testCheckcastAfterInline() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/optimizations/checkcastAfterInline.kt");
+        }
+
         @TestMetadata("kt20844.kt")
         public void testKt20844() throws Exception {
             runTest("compiler/testData/codegen/boxInline/optimizations/kt20844.kt");

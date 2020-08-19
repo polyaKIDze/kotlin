@@ -771,7 +771,9 @@ class ExpressionCodegen(
 
         val returnType = if (owner == irFunction) signature.returnType else methodSignatureMapper.mapReturnType(owner)
         val afterReturnLabel = Label()
-        expression.value.accept(this, data).materializeAt(returnType, owner.returnType, true)
+        // Checkcast on return expression withing inline function is required also for compatibility with old compiler
+        // TODO: support checkcast on callsite and pass `allowNoUpcast = true` in 1.5/1.6
+        expression.value.accept(this, data).materializeAt(returnType, owner.returnType, (returnTarget as? IrFunction)?.isInline != true)
         generateFinallyBlocksIfNeeded(returnType, afterReturnLabel, data)
         expression.markLineNumber(startOffset = true)
         if (isNonLocalReturn) {
