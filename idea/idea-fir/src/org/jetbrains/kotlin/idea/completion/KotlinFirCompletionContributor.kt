@@ -60,14 +60,14 @@ private object KotlinHighLevelApiContributor : CompletionProvider<CompletionPara
 
                 val extensionNonMembers = implicitScopes
                     .getCallableSymbols()
-                    .filter { it.isExtension && it.canBeCalledWith(listOf(typeOfPossibleReceiver)) }
+                    .filter { it.isExtension && resolveAndCheckReceivers(it, originalFile, nameExpression, possibleReceiver) }
 
                 nonExtensionMembers.forEach(::addToCompletion)
                 extensionNonMembers.forEach(::addToCompletion)
             } else {
                 val extensionNonMembers = implicitScopes
                     .getCallableSymbols()
-                    .filter { !it.isExtension || it.canBeCalledWith(implicitReceivers) }
+                    .filter { !it.isExtension || resolveAndCheckReceivers(it, originalFile, nameExpression, possibleReceiver) }
 
                 extensionNonMembers.forEach(::addToCompletion)
 
