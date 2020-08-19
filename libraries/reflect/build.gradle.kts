@@ -159,6 +159,7 @@ val relocateCoreSources by task<Copy> {
     }
 
     from("$core/descriptors/src")
+    from("$core/descriptors.common/src")
     from("$core/descriptors.jvm/src")
     from("$core/descriptors.runtime/src")
     from("$core/deserialization/src")
