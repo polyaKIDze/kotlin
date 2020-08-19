@@ -174,19 +174,21 @@ class CocoaPodsIT : BaseGradleIT() {
         assumeFalse(HostManager.hostIsMac)
 
         with(transformProjectWithPluginsDsl(cocoapodsSingleKtPod, gradleVersion)) {
-            build(":podInstall", ":kotlin-library:podImport", "-Pkotlin.native.cocoapods.generate.wrapper=true") {
+            val syntheticTasks = arrayOf(
+                ":podInstall",
+                ":kotlin-library:generateDummyFramework",
+                ":kotlin-library:podGenIOS",
+                ":kotlin-library:podSetupBuildIOS",
+                ":kotlin-library:podBuildDependenciesIOS",
+                ":kotlin-library:podImport"
+            )
+
+            build(*syntheticTasks, "-Pkotlin.native.cocoapods.generate.wrapper=true") {
                 // Check that tasks working with synthetic projects are skipped on non-mac hosts.
                 assertSuccessful()
-                assertTasksSkipped(
-                    ":podInstall",
-                    ":kotlin-library:podGenIOS",
-                    ":kotlin-library:podSetupBuildIOS",
-                    ":kotlin-library:podBuildDependenciesIOS",
-                    ":kotlin-library:podImport"
-                )
+                assertTasksSkipped(*syntheticTasks)
             }
         }
-
     }
 
     private fun BaseGradleIT.Project.useCustomFrameworkName(subproject: String, frameworkName: String, iosAppLocation: String? = null) {

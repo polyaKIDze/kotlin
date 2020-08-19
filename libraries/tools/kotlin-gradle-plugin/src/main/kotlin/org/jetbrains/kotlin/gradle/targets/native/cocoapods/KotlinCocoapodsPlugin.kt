@@ -281,6 +281,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
     ) {
         project.tasks.register(DUMMY_FRAMEWORK_TASK_NAME, DummyFrameworkTask::class.java) {
             it.cocoapodsExtension = cocoapodsExtension
+            it.onlyIf { isAvailableToProduceSynthetic }
         }
     }
 
