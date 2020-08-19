@@ -5,7 +5,10 @@
 
 package org.jetbrains.kotlin.fir.analysis.checkers.extended
 
+import com.intellij.lang.LighterASTNode
+import com.intellij.openapi.util.Ref
 import com.intellij.psi.tree.IElementType
+import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirExpressionChecker
 import org.jetbrains.kotlin.fir.analysis.diagnostics.DiagnosticReporter
@@ -13,10 +16,8 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.expressions.FirVariableAssignment
 import org.jetbrains.kotlin.fir.expressions.toResolvedCallableSymbol
-import org.jetbrains.kotlin.fir.psi
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.symbols.StandardClassIds
-import org.jetbrains.kotlin.fir.toFirPsiSourceElement
 import org.jetbrains.kotlin.fir.types.classId
 import org.jetbrains.kotlin.fir.types.coneType
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -29,6 +30,7 @@ object CanBeReplacedWithOperatorAssignmentChecker : FirExpressionChecker<FirVari
         val lValue = assignment.lValue
         if (lValue !is FirResolvedNamedReference) return
 
+        //todo: is it needed?
         val operator = assignment.psi?.children?.getOrNull(1) ?: return
         val operationSign = (operator as? KtOperationReferenceExpression)?.operationSignTokenType
         if (operationSign != KtTokens.EQ) return
@@ -43,7 +45,7 @@ object CanBeReplacedWithOperatorAssignmentChecker : FirExpressionChecker<FirVari
         if (rValueResolvedSymbol.callableId.classId !in StandardClassIds.primitiveTypes) return
 
         if (rValuePsi.matcher(lValuePsi)) {
-            val operatorStatement = operator.toFirPsiSourceElement()
+            val operatorStatement = assignment.source?.eqOperatorSource()
             reporter.report(operatorStatement, FirErrors.CAN_BE_REPLACED_WITH_OPERATOR_ASSIGNMENT)
         }
     }
@@ -82,4 +84,20 @@ object CanBeReplacedWithOperatorAssignmentChecker : FirExpressionChecker<FirVari
             || this.operationToken == KtTokens.PERC
 
     private fun isHierarchicallyTrue(currentOperation: IElementType, nextOperation: IElementType?) = currentOperation == nextOperation
+    private fun FirSourceElement.eqOperatorSource(): FirSourceElement? {
+        return when (this) {
+            is FirLightSourceElement -> {
+                val children = Ref<Array<LighterASTNode>>()
+                val tree = tree
+                tree.getChildren(element, children)
+                val element = children.get()[2]
+                element.toFirLightSourceElement(element.startOffset, element.endOffset, tree)
+            }
+            is FirPsiSourceElement<*> -> {
+                val operator = psi.children.getOrNull(1)
+                operator?.toFirPsiSourceElement()
+            }
+            else -> null
+        }
+    }
 }

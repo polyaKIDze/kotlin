@@ -9,37 +9,41 @@ import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.Visibility
-import org.jetbrains.kotlin.fir.FirFakeSourceElement
+import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.analysis.checkers.*
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.declaration.FirBasicDeclarationChecker
 import org.jetbrains.kotlin.fir.analysis.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
 import org.jetbrains.kotlin.fir.declarations.*
-import org.jetbrains.kotlin.fir.toFirPsiSourceElement
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifier
 
 object RedundantVisibilityModifierChecker : FirBasicDeclarationChecker() {
     override fun check(declaration: FirDeclaration, context: CheckerContext, reporter: DiagnosticReporter) {
-        if (declaration is FirConstructor && declaration.source is FirFakeSourceElement<*>) return
+        if (declaration is FirConstructor && declaration.source?.kind is FirFakeSourceElementKind) return
         if (declaration.source is FirFakeSourceElement<*>) return
         if (
             declaration !is FirMemberDeclaration
             && !(declaration is FirPropertyAccessor && declaration.visibility == context.containingPropertyVisibility)
         ) return
 
-        val modifierList = (declaration.source.getModifierList() as? FirPsiModifierList)?.modifierList ?: return
-        val visibilityModifier = modifierList.getVisibility() ?: return
+        val modifiers = declaration.source.getModifierList()
+        val visibilityModifier = when (modifiers) {
+            is FirPsiModifierList -> modifiers.modifierList.getVisibility()
+            is FirLightModifierList -> modifiers.modifiers.firstOrNull { it.token.toVisibilityOrNull() != null }?.token?.toVisibilityOrNull()
+            else -> null
+        } ?: return
         val implicitVisibility = declaration.implicitVisibility(context)
         val containingMemberDeclaration = context.findClosest<FirMemberDeclaration>()
 
         val redundantVisibility = when {
             visibilityModifier == implicitVisibility -> implicitVisibility
 
-            modifierList.hasModifier(KtTokens.INTERNAL_KEYWORD) &&
-                    containingMemberDeclaration.let {
-                        it != null && (it.isLocalMember || modifierList.hasModifier(KtTokens.PRIVATE_KEYWORD))
+            modifiers?.modifiers?.any { it.token == KtTokens.INTERNAL_KEYWORD } == true &&
+                    containingMemberDeclaration.let { decl ->
+                        decl != null && (decl.isLocalMember || modifiers.modifiers.any { it.token == KtTokens.PRIVATE_KEYWORD })
                     } -> Visibilities.INTERNAL
 
             else -> null
@@ -48,13 +52,12 @@ object RedundantVisibilityModifierChecker : FirBasicDeclarationChecker() {
         if (
             redundantVisibility == Visibilities.PUBLIC
             && declaration is FirProperty
-            && modifierList.hasModifier(KtTokens.OVERRIDE_KEYWORD)
+            && modifiers?.modifiers?.any { it.token == KtTokens.OVERRIDE_KEYWORD } == true
             && declaration.isVar
             && declaration.setter?.visibility == Visibilities.PUBLIC
         ) return
 
-        val source = modifierList.visibilityModifier()?.toFirPsiSourceElement()
-        reporter.report(source, FirErrors.REDUNDANT_VISIBILITY_MODIFIER)
+        reporter.report(declaration.source.modifierSource, FirErrors.REDUNDANT_VISIBILITY_MODIFIER)
     }
 
     private fun FirDeclaration.implicitVisibility(context: CheckerContext): Visibility {
@@ -124,4 +127,17 @@ object RedundantVisibilityModifierChecker : FirBasicDeclarationChecker() {
 
     private val CheckerContext.containingPropertyVisibility
         get() = (this.containingDeclarations.last() as? FirProperty)?.visibility
+
+    private val FirSourceElement?.modifierSource: FirSourceElement?
+        get() = when (this) {
+            null -> null
+            is FirPsiSourceElement<*> -> (psi as? KtModifierListOwner)?.modifierList?.visibilityModifier()?.toFirPsiSourceElement()
+            is FirLightSourceElement -> {
+                val modifier = this.getModifierList()?.modifiers?.firstOrNull { it.isVisibilityModifier }
+                modifier?.source
+            }
+        }
+
+    private val FirModifier<*>.isVisibilityModifier
+        get() = this.token.toVisibilityOrNull() != null
 }

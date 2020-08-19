@@ -7,6 +7,8 @@ package org.jetbrains.kotlin.fir.analysis.checkers
 
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.descriptors.Visibilities
+import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSymbolOwner
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
@@ -26,6 +28,7 @@ import org.jetbrains.kotlin.fir.types.ConeClassLikeType
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirResolvedTypeRef
 import org.jetbrains.kotlin.fir.types.FirTypeRef
+import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtModifierList
 import org.jetbrains.kotlin.psi.psiUtil.toVisibility
@@ -223,6 +226,19 @@ fun FirSimpleFunction.overriddenFunctions(
 fun KtModifierList?.getVisibility() = this?.visibilityModifierType()?.toVisibility()
 
 /**
+ * Returns Visibility by token or null
+ */
+fun KtModifierKeywordToken.toVisibilityOrNull(): Visibility? {
+    return when (this) {
+        KtTokens.PUBLIC_KEYWORD -> Visibilities.PUBLIC
+        KtTokens.PRIVATE_KEYWORD -> Visibilities.PRIVATE
+        KtTokens.PROTECTED_KEYWORD -> Visibilities.PROTECTED
+        KtTokens.INTERNAL_KEYWORD -> Visibilities.INTERNAL
+        else -> null
+    }
+}
+
+/**
  * Returns the modality of the class
  */
 fun FirClass<*>.modality(): Modality? {
@@ -243,10 +259,10 @@ fun FirMemberDeclaration.implicitModality(context: CheckerContext): Modality {
 
     val klass = context.findClosestClassOrObject() ?: return Modality.FINAL
     val modifiers = this.modifierListOrNull() ?: return Modality.FINAL
-    if (modifiers.hasModifier(KtTokens.OVERRIDE_KEYWORD)) {
+    if (modifiers.contains(KtTokens.OVERRIDE_KEYWORD)) {
         val klassModifiers = klass.modifierListOrNull()
         if (klassModifiers != null && klassModifiers.run {
-                hasModifier(KtTokens.ABSTRACT_KEYWORD) || hasModifier(KtTokens.OPEN_KEYWORD) || hasModifier(KtTokens.SEALED_KEYWORD)
+                contains(KtTokens.ABSTRACT_KEYWORD) || contains(KtTokens.OPEN_KEYWORD) || contains(KtTokens.SEALED_KEYWORD)
             }) {
             return Modality.OPEN
         }
@@ -255,7 +271,7 @@ fun FirMemberDeclaration.implicitModality(context: CheckerContext): Modality {
     if (
         klass is FirRegularClass
         && klass.classKind == ClassKind.INTERFACE
-        && !modifiers.hasModifier(KtTokens.PRIVATE_KEYWORD)
+        && !modifiers.contains(KtTokens.PRIVATE_KEYWORD)
     ) {
         return if (this.hasBody()) Modality.OPEN else Modality.ABSTRACT
     }
@@ -263,7 +279,7 @@ fun FirMemberDeclaration.implicitModality(context: CheckerContext): Modality {
     return Modality.FINAL
 }
 
-private fun FirDeclaration.modifierListOrNull() = (this.source.getModifierList() as? FirPsiModifierList)?.modifierList
+private fun FirDeclaration.modifierListOrNull() = this.source.getModifierList()?.modifiers?.map { it.token }
 
 private fun FirDeclaration.hasBody(): Boolean = when (this) {
     is FirSimpleFunction -> this.body != null && this.body !is FirEmptyExpressionBlock
