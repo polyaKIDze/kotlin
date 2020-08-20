@@ -2758,11 +2758,15 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         boolean isIntrinsic = descriptor instanceof CallableMemberDescriptor &&
                               state.getIntrinsics().getIntrinsic((CallableMemberDescriptor) descriptor) != null;
 
-        boolean isInline = (InlineUtil.isInline(descriptor) && !isIntrinsic) || InlineUtil.isArrayConstructorWithLambda(descriptor);
+        boolean isInline = InlineUtil.isInline(descriptor) && !isIntrinsic;
 
         // We should inline callable containing reified type parameters even if inline is disabled
         // because they may contain something to reify and straight call will probably fail at runtime
-        boolean shouldInline = isInline && (!state.isInlineDisabled() || InlineUtil.containsReifiedTypeParameters(descriptor));
+        boolean shouldInline = InlineUtil.isArrayConstructorWithLambda(descriptor) ||
+                               isInline &&
+                               (!state.isInlineDisabled() ||
+                                InlineUtil.containsReifiedTypeParameters(descriptor)
+                               );
         if (!shouldInline) return defaultCallGenerator;
 
         FunctionDescriptor original =
