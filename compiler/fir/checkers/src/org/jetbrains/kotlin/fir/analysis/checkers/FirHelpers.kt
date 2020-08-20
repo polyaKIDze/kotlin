@@ -5,12 +5,13 @@
 
 package org.jetbrains.kotlin.fir.analysis.checkers
 
+import com.intellij.lang.LighterASTNode
+import com.intellij.openapi.util.Ref
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.Visibility
-import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.FirSymbolOwner
+import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccessExpression
@@ -308,4 +309,24 @@ fun FirClass<*>.findNonInterfaceSupertype(context: CheckerContext): FirTypeRef? 
     }
 
     return null
+}
+
+/**
+ * Returns the source element of the eq operator in assignment statement
+ */
+fun FirSourceElement.eqOperatorSource(): FirSourceElement? {
+    return when (this) {
+        is FirLightSourceElement -> {
+            val children = Ref<Array<LighterASTNode>>()
+            val tree = tree
+            tree.getChildren(element, children)
+            val element = children.get().getOrNull(2) ?: return null
+            element.toFirLightSourceElement(element.startOffset, element.endOffset, tree)
+        }
+        is FirPsiSourceElement<*> -> {
+            val operator = psi.children.getOrNull(1)
+            operator?.toFirPsiSourceElement()
+        }
+        else -> null
+    }
 }
